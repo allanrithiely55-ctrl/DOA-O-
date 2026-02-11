@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Ajude a Dona Josefa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial;
+      background: #111;
+      color: white;
+      text-align: center;
+      padding: 40px;
+    }
+    input {
+      padding: 12px;
+      margin: 10px;
+      width: 220px;
+      font-size: 16px;
+    }
+    button {
+      padding: 12px 25px;
+      background: #6a00ff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 6px;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    #pix-area {
+      margin-top: 30px;
+    }
+    textarea {
+      width: 100%;
+      max-width: 400px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Ajude a Dona Josefa ❤️</h1>
+  <p>Contribua com qualquer valor entre R$1 e R$1000</p>
+
+  <input type="number" id="amount" placeholder="Valor (1 - 1000)" min="1" max="1000">
+  <br>
+  <button onclick="pagar()">Fazer Doação</button>
+
+  <div id="pix-area"></div>
+
+<script>
+async function pagar() {
+  const amount = Number(document.getElementById("amount").value);
+
+  if (!amount || amount < 1 || amount > 1000) {
+    alert("Valor deve ser entre R$1 e R$1000");
+    return;
+  }
+
+  const response = await fetch("/.netlify/functions/create-payment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ amount })
+  });
+
+  const data = await response.json();
+
+  if (data.qrcodeUrl) {
+    document.getElementById("pix-area").innerHTML = `
+      <h3>Escaneie o QR Code</h3>
+      <img src="data:image/png;base64,${data.qrcodeUrl}" width="250"><br>
+      <p>Ou copie o código PIX:</p>
+      <textarea rows="4" readonly>${data.copyPaste}</textarea>
+    `;
+  } else {
+    alert(data.error || "Erro ao criar pagamento");
+  }
+}
+</script>
+
+</body>
+</html>
